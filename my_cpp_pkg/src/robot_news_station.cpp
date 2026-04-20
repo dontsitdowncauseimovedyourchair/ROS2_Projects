@@ -1,0 +1,37 @@
+//
+// Created by ale on 19/04/26.
+//
+
+#include <rclcpp/rclcpp.hpp>
+#include "example_interfaces/msg/string.hpp"
+
+using namespace std::chrono_literals;
+
+class RobotNewsStationNode : public rclcpp::Node {
+public:
+    //                               Node name
+    RobotNewsStationNode() : Node("robot_news_station"), robot_name_("R2D2") {
+        //                                                                                 Topic name
+        publisher_ = this->create_publisher<example_interfaces::msg::String>("robots_news", 10);
+        timer_ = this->create_wall_timer(0.5s, std::bind(&RobotNewsStationNode::PublishNews, this));
+        RCLCPP_INFO(this->get_logger(), "Robot news station has been started");
+    }
+
+private:
+    void PublishNews() {
+        auto msg = example_interfaces::msg::String();
+        msg.data = std::string("Hi, this is ") + robot_name_ + " from the c++ Robot News Station";
+        publisher_->publish(msg);
+    }
+
+    std::string robot_name_;
+    rclcpp::Publisher<example_interfaces::msg::String>::SharedPtr publisher_;
+    rclcpp::TimerBase::SharedPtr timer_;
+};
+
+int main(int argc, char** argv) {
+    rclcpp::init(argc, argv);
+    auto node = std::make_shared<RobotNewsStationNode>();
+    rclcpp::spin(node);
+    rclcpp::shutdown();
+}
